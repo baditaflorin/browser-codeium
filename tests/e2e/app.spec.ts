@@ -31,6 +31,7 @@ test("loads the IDE shell and runs a happy path", async ({ page }) => {
   );
   await expect(page.getByText("Version: v0.1.0")).toBeVisible();
   await expect(page.getByText(/Commit: (main|[a-f0-9]{7})/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "src/example.ts" })).toBeVisible();
 
   await page.getByRole("button", { name: "Analyze", exact: true }).click();
   await expect(page.getByText("tree-sitter", { exact: true })).toBeVisible({ timeout: 15_000 });
