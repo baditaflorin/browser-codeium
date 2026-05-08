@@ -1,4 +1,9 @@
-import { isSupportedTextPath, languageFromPath, type Workspace, type WorkspaceFile } from "./workspace";
+import {
+  isSupportedTextPath,
+  languageFromPath,
+  type Workspace,
+  type WorkspaceFile
+} from "./workspace";
 
 const ignoredDirectories = new Set([".git", "node_modules", "dist", "docs/assets", "coverage"]);
 const maxFiles = 80;

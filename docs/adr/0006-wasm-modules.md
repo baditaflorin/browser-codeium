@@ -10,7 +10,7 @@ The app needs robust source parsing without shipping a custom parser. Tree-sitte
 
 ## Decision
 
-Use `web-tree-sitter` plus prebuilt language WASM assets from `tree-sitter-wasms`. V1 loads JavaScript and TypeScript-capable parsing through the JavaScript grammar.
+Use `web-tree-sitter` plus prebuilt language WASM assets from `@vscode/tree-sitter-wasm`. V1 loads JavaScript, TypeScript, and TSX grammars.
 
 WASM is lazy-loaded when analysis is requested. Because GitHub Pages cannot set COOP/COEP headers, the app avoids WASM flows that require `SharedArrayBuffer`.
 
@@ -19,6 +19,7 @@ WASM is lazy-loaded when analysis is requested. Because GitHub Pages cannot set 
 - Parser work stays client-side.
 - Initial load is not blocked by parser assets.
 - Some high-performance WASM features remain unavailable on GitHub Pages.
+- Grammar assets must stay compatible with the `web-tree-sitter` ABI.
 
 ## Alternatives Considered
 

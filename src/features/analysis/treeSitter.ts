@@ -8,14 +8,18 @@ const languageCache = new Map<string, Promise<Language>>();
 
 export async function analyzeSource(code: string, path: string): Promise<CodeAnalysis> {
   if (!isTreeSitterCandidate(path)) {
-    return analyzeWithFallback(code, path, ["Tree-sitter is enabled for JavaScript and TypeScript files in v1."]);
+    return analyzeWithFallback(code, path, [
+      "Tree-sitter is enabled for JavaScript and TypeScript files in v1."
+    ]);
   }
 
   try {
     return await analyzeWithTreeSitter(code, path);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return analyzeWithFallback(code, path, [`Tree-sitter unavailable, used fallback analysis: ${message}`]);
+    return analyzeWithFallback(code, path, [
+      `Tree-sitter unavailable, used fallback analysis: ${message}`
+    ]);
   }
 }
 

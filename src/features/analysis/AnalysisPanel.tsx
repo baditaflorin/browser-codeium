@@ -78,7 +78,9 @@ export function AnalysisPanel({
           </div>
         </div>
       ) : (
-        <p className="text-sm text-muted">Run analysis to build a symbol map for the active file.</p>
+        <p className="text-sm text-muted">
+          Run analysis to build a symbol map for the active file.
+        </p>
       )}
     </section>
   );

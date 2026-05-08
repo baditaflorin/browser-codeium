@@ -39,7 +39,12 @@ export function Sidebar({
             <FolderOpen size={16} aria-hidden="true" />
             <span>Folder</span>
           </button>
-          <button type="button" className="toolbar-button" title="Load sample" onClick={onLoadSample}>
+          <button
+            type="button"
+            className="toolbar-button"
+            title="Load sample"
+            onClick={onLoadSample}
+          >
             <Upload size={16} aria-hidden="true" />
             <span>Sample</span>
           </button>
@@ -47,7 +52,12 @@ export function Sidebar({
             <Save size={16} aria-hidden="true" />
             <span>Save</span>
           </button>
-          <button type="button" className="toolbar-button" title="Reset workspace" onClick={onReset}>
+          <button
+            type="button"
+            className="toolbar-button"
+            title="Reset workspace"
+            onClick={onReset}
+          >
             <Trash2 size={16} aria-hidden="true" />
             <span>Reset</span>
           </button>

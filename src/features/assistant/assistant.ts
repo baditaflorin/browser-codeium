@@ -19,7 +19,8 @@ export function createAssistantDraft(input: AssistantInput): AssistantDraft {
   const todos = extractTodos(input.code);
   const exportedCount = input.analysis?.exports.length ?? 0;
   const symbolCount = input.analysis?.symbols.length ?? 0;
-  const hasTests = /\b(test|spec)\.(t|j)sx?$/i.test(input.path) || /describe\(|it\(|test\(/.test(input.code);
+  const hasTests =
+    /\b(test|spec)\.(t|j)sx?$/i.test(input.path) || /describe\(|it\(|test\(/.test(input.code);
   const hasErrors = input.analysis?.hasSyntaxErrors ?? false;
 
   return {
@@ -39,7 +40,12 @@ export function createAssistantDraft(input: AssistantInput): AssistantDraft {
   };
 }
 
-function buildSuggestedEdit(path: string, code: string, hasTests: boolean, hasErrors: boolean): string {
+function buildSuggestedEdit(
+  path: string,
+  code: string,
+  hasTests: boolean,
+  hasErrors: boolean
+): string {
   if (hasErrors) {
     return "Fix the syntax error first, then rerun analysis so structural suggestions are based on a clean parse tree.";
   }

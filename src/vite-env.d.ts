@@ -47,7 +47,9 @@ interface GPUAdapter {
 }
 
 interface GPU {
-  requestAdapter(options?: { powerPreference?: "low-power" | "high-performance" }): Promise<GPUAdapter | null>;
+  requestAdapter(options?: {
+    powerPreference?: "low-power" | "high-performance";
+  }): Promise<GPUAdapter | null>;
 }
 
 interface Navigator {

@@ -32,7 +32,10 @@ export function AssistantPanel({
         </button>
       </div>
 
-      <label className="block text-xs font-medium uppercase tracking-wide text-muted" htmlFor="assistant-prompt">
+      <label
+        className="block text-xs font-medium uppercase tracking-wide text-muted"
+        htmlFor="assistant-prompt"
+      >
         Prompt
       </label>
       <textarea

@@ -13,7 +13,7 @@ The app should use production-ready libraries rather than custom implementations
 Use established packages for core needs:
 
 - Monaco for editor UI.
-- Tree-sitter WASM for parsing.
+- `web-tree-sitter` and `@vscode/tree-sitter-wasm` for parsing.
 - TanStack Query for fetch caching.
 - Zod for runtime validation.
 - Vite, Vitest, ESLint, Prettier, and Playwright for local delivery.

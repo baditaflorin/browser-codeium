@@ -42,7 +42,8 @@ export function languageFromPath(path: string): string {
   if (lower.endsWith(".tsx")) return "typescript";
   if (lower.endsWith(".ts")) return "typescript";
   if (lower.endsWith(".jsx")) return "javascript";
-  if (lower.endsWith(".js") || lower.endsWith(".mjs") || lower.endsWith(".cjs")) return "javascript";
+  if (lower.endsWith(".js") || lower.endsWith(".mjs") || lower.endsWith(".cjs"))
+    return "javascript";
   if (lower.endsWith(".json")) return "json";
   if (lower.endsWith(".md")) return "markdown";
   if (lower.endsWith(".css")) return "css";
@@ -59,7 +60,9 @@ export function isSupportedTextPath(path: string): boolean {
   return [...codeExtensions].some((extension) => lower.endsWith(extension));
 }
 
-export function createWorkspaceFromSamples(files: Array<{ path: string; content: string }>): Workspace {
+export function createWorkspaceFromSamples(
+  files: Array<{ path: string; content: string }>
+): Workspace {
   const now = new Date().toISOString();
   const workspaceFiles = files.map((file) => ({
     path: file.path,

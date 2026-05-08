@@ -5,9 +5,15 @@ import { join } from "node:path";
 const targetDir = "public/vendor/tree-sitter";
 const assets = [
   ["node_modules/web-tree-sitter/web-tree-sitter.wasm", "web-tree-sitter.wasm"],
-  ["node_modules/tree-sitter-wasms/out/tree-sitter-javascript.wasm", "tree-sitter-javascript.wasm"],
-  ["node_modules/tree-sitter-wasms/out/tree-sitter-typescript.wasm", "tree-sitter-typescript.wasm"],
-  ["node_modules/tree-sitter-wasms/out/tree-sitter-tsx.wasm", "tree-sitter-tsx.wasm"]
+  [
+    "node_modules/@vscode/tree-sitter-wasm/wasm/tree-sitter-javascript.wasm",
+    "tree-sitter-javascript.wasm"
+  ],
+  [
+    "node_modules/@vscode/tree-sitter-wasm/wasm/tree-sitter-typescript.wasm",
+    "tree-sitter-typescript.wasm"
+  ],
+  ["node_modules/@vscode/tree-sitter-wasm/wasm/tree-sitter-tsx.wasm", "tree-sitter-tsx.wasm"]
 ];
 
 await mkdir(targetDir, { recursive: true });

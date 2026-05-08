@@ -65,7 +65,8 @@ function languageFromPath(path: string): CodeAnalysis["language"] {
   const lower = path.toLowerCase();
   if (lower.endsWith(".tsx") || lower.endsWith(".jsx")) return "tsx";
   if (lower.endsWith(".ts")) return "typescript";
-  if (lower.endsWith(".js") || lower.endsWith(".mjs") || lower.endsWith(".cjs")) return "javascript";
+  if (lower.endsWith(".js") || lower.endsWith(".mjs") || lower.endsWith(".cjs"))
+    return "javascript";
   return "text";
 }
 

@@ -40,7 +40,9 @@ export function App(): JSX.Element {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [bootstrapped, setBootstrapped] = useState(false);
   const [analysis, setAnalysis] = useState<CodeAnalysis | null>(null);
-  const [assistantPrompt, setAssistantPrompt] = useState("Review this file and suggest a safe next edit.");
+  const [assistantPrompt, setAssistantPrompt] = useState(
+    "Review this file and suggest a safe next edit."
+  );
   const [assistantDraft, setAssistantDraft] = useState<AssistantDraft | null>(null);
   const [webGpuStatus, setWebGpuStatus] = useState<WebGpuStatus>(uncheckedWebGpu);
   const [storageState, setStorageState] = useState("loading");
@@ -264,7 +266,11 @@ export function App(): JSX.Element {
 
         <aside className="min-h-0 overflow-y-auto border-l border-line bg-panel">
           <div className="space-y-3 p-3">
-            <AnalysisPanel analysis={analysis} isAnalyzing={isAnalyzing} onAnalyze={handleAnalyze} />
+            <AnalysisPanel
+              analysis={analysis}
+              isAnalyzing={isAnalyzing}
+              onAnalyze={handleAnalyze}
+            />
             <AssistantPanel
               prompt={assistantPrompt}
               draft={assistantDraft}

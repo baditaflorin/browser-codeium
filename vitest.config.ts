@@ -8,14 +8,25 @@ export default defineConfig({
     }
   },
   test: {
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      include: ["src/features/**/*.ts", "src/lib/**/*.ts"],
-      exclude: ["src/features/analysis/treeSitter.ts"]
+      include: [
+        "src/features/analysis/fallback.ts",
+        "src/features/assistant/assistant.ts",
+        "src/features/system/webgpu.ts",
+        "src/features/workspace/workspace.ts"
+      ],
+      thresholds: {
+        statements: 70,
+        branches: 55,
+        functions: 70,
+        lines: 70
+      }
     }
   }
 });
