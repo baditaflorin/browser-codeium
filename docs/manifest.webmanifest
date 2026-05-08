@@ -1,0 +1,18 @@
+{
+  "name": "browser-codeium",
+  "short_name": "browser-codeium",
+  "description": "A browser-native coding workspace with Monaco, tree-sitter, and WebGPU readiness.",
+  "start_url": "/browser-codeium/",
+  "scope": "/browser-codeium/",
+  "display": "standalone",
+  "background_color": "#111318",
+  "theme_color": "#111318",
+  "icons": [
+    {
+      "src": "/browser-codeium/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

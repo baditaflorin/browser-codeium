@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "samples": [
+    {
+      "path": "src/example.ts",
+      "language": "typescript",
+      "content": "type Review = {\n  id: string;\n  title: string;\n  severity: \"low\" | \"medium\" | \"high\";\n};\n\nconst reviews: Review[] = [\n  { id: \"a11y\", title: \"Keyboard focus escapes modal\", severity: \"high\" },\n  { id: \"cache\", title: \"Stale data after refresh\", severity: \"medium\" }\n];\n\nexport function summarizeReviews(items: Review[]) {\n  const highPriority = items.filter((item) => item.severity === \"high\");\n\n  return {\n    total: items.length,\n    highPriority: highPriority.length,\n    titles: items.map((item) => item.title)\n  };\n}\n\nexport const summary = summarizeReviews(reviews);\n"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "content": "# Example Project\n\nThis sample is stored locally in your browser. Edit `src/example.ts`, run analysis, and ask the local assistant for a review draft.\n"
+    }
+  ]
+}

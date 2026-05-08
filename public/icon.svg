@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="browser-codeium logo">
+  <rect width="128" height="128" rx="24" fill="#111318" />
+  <path d="M25 36h78v56H25z" fill="#222733" stroke="#7dd3fc" stroke-width="4" />
+  <path d="M39 55l14 10-14 10" fill="none" stroke="#7bd88f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M66 78h25" stroke="#ffd166" stroke-width="7" stroke-linecap="round" />
+  <circle cx="94" cy="34" r="10" fill="#ff8a7a" />
+</svg>

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "productName": "browser-codeium",
+  "pagesUrl": "https://baditaflorin.github.io/browser-codeium/",
+  "repositoryUrl": "https://github.com/baditaflorin/browser-codeium",
+  "supportUrl": "https://www.paypal.com/paypalme/florinbadita",
+  "deploymentMode": "Mode A",
+  "capabilities": [
+    "Monaco editing",
+    "Tree-sitter WASM analysis",
+    "WebGPU capability detection",
+    "IndexedDB workspace persistence",
+    "Offline-friendly PWA shell"
+  ]
+}
