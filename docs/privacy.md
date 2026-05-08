@@ -11,6 +11,7 @@ Repository: https://github.com/baditaflorin/browser-codeium
 By default, only static asset requests leave the browser:
 
 - HTML, CSS, JavaScript, WASM, JSON, and image assets from GitHub Pages.
+- A public GitHub API request for the latest `main` commit SHA.
 - User clicks on external links such as GitHub or PayPal.
 
 ## What Stays Local

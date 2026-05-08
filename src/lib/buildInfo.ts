@@ -11,5 +11,8 @@ export function commitUrl(commit = buildInfo.commit): string {
   if (commit === "local") {
     return buildInfo.repositoryUrl;
   }
+  if (commit === "main") {
+    return `${buildInfo.repositoryUrl}/commits/main`;
+  }
   return `${buildInfo.repositoryUrl}/commit/${commit}`;
 }

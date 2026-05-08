@@ -7,6 +7,7 @@ import type { CodeAnalysis } from "@/features/analysis/types";
 import { createAssistantDraft, type AssistantDraft } from "@/features/assistant/assistant";
 import { AssistantPanel } from "@/features/assistant/AssistantPanel";
 import { fetchAppMeta, fetchSamples } from "@/features/staticData/staticData";
+import { fetchLatestCommit } from "@/features/system/githubCommit";
 import { SystemPanel } from "@/features/system/SystemPanel";
 import { detectWebGpu, type WebGpuStatus } from "@/features/system/webgpu";
 import { openDirectoryWorkspace } from "@/features/workspace/fileSystem";
@@ -37,6 +38,12 @@ const uncheckedWebGpu: WebGpuStatus = {
 export function App(): JSX.Element {
   const appMeta = useQuery({ queryKey: ["app-meta"], queryFn: fetchAppMeta });
   const samples = useQuery({ queryKey: ["samples"], queryFn: fetchSamples });
+  const latestCommit = useQuery({
+    queryKey: ["github-commit", "main"],
+    queryFn: fetchLatestCommit,
+    staleTime: 5 * 60 * 1000,
+    retry: false
+  });
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [bootstrapped, setBootstrapped] = useState(false);
   const [analysis, setAnalysis] = useState<CodeAnalysis | null>(null);
@@ -50,6 +57,7 @@ export function App(): JSX.Element {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const activeFile = useMemo(() => (workspace ? getActiveFile(workspace) : null), [workspace]);
+  const displayedCommit = latestCommit.data ?? "main";
 
   const pushToast = useCallback((tone: ToastMessage["tone"], message: string) => {
     const id = crypto.randomUUID();
@@ -220,7 +228,7 @@ export function App(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-ink text-mist">
-      <TopBar webGpuLabel={webGpuStatus.label} />
+      <TopBar webGpuLabel={webGpuStatus.label} commit={displayedCommit} />
       <main className="mx-auto grid h-[calc(100vh-65px)] max-w-[1500px] grid-cols-1 overflow-hidden lg:grid-cols-[280px_minmax(0,1fr)_380px]">
         <Sidebar
           workspace={workspace}
@@ -282,6 +290,7 @@ export function App(): JSX.Element {
               onCheckWebGpu={handleCheckWebGpu}
               storageState={storageState}
               sampleVersion={samples.data?.schemaVersion ?? appMeta.data?.schemaVersion ?? null}
+              commit={displayedCommit}
             />
           </div>
         </aside>

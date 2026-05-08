@@ -4,9 +4,10 @@ import { StatusPill } from "./StatusPill";
 
 interface TopBarProps {
   webGpuLabel: string;
+  commit: string;
 }
 
-export function TopBar({ webGpuLabel }: TopBarProps): JSX.Element {
+export function TopBar({ webGpuLabel, commit }: TopBarProps): JSX.Element {
   return (
     <header className="border-b border-line bg-ink/95 px-4 py-3">
       <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3">
@@ -24,12 +25,12 @@ export function TopBar({ webGpuLabel }: TopBarProps): JSX.Element {
             <span className="ml-1">{webGpuLabel}</span>
           </StatusPill>
           <a
-            href={commitUrl()}
+            href={commitUrl(commit)}
             className="inline-flex min-h-7 items-center rounded-md border border-line bg-panelSoft px-2.5 py-1 text-xs font-medium text-mist hover:border-cyan"
           >
             <GitCommit size={14} aria-hidden="true" />
             <span className="ml-1">
-              v{buildInfo.version} · {buildInfo.commit}
+              v{buildInfo.version} · {commit}
             </span>
           </a>
           <a

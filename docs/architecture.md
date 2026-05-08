@@ -18,7 +18,7 @@ System_Boundary(pages, "GitHub Pages Boundary") {
 System_Ext(github, "GitHub", "Repository, stars, issues")
 System_Ext(paypal, "PayPal", "Optional support link")
 Rel(dev, app, "Loads and uses", "HTTPS")
-Rel(app, github, "Links to repository", "HTTPS")
+Rel(app, github, "Links to repository and reads public latest commit", "HTTPS")
 Rel(app, paypal, "Links to PayPal", "HTTPS")
 ```
 

@@ -8,13 +8,15 @@ interface SystemPanelProps {
   onCheckWebGpu: () => void;
   storageState: string;
   sampleVersion: number | null;
+  commit: string;
 }
 
 export function SystemPanel({
   webGpuStatus,
   onCheckWebGpu,
   storageState,
-  sampleVersion
+  sampleVersion,
+  commit
 }: SystemPanelProps): JSX.Element {
   return (
     <section className="panel-section">
@@ -60,7 +62,7 @@ export function SystemPanel({
 
         <div className="rounded-md border border-line bg-ink p-3 text-xs text-muted">
           <p>Version: v{buildInfo.version}</p>
-          <p>Commit: {buildInfo.commit}</p>
+          <p>Commit: {commit}</p>
           <p className="break-all">Pages: {buildInfo.pagesUrl}</p>
         </div>
       </div>
