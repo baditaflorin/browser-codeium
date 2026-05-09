@@ -48,7 +48,8 @@ export function AnalysisPanel({
           {analysis.diagnostics.length > 0 ? (
             <div className="rounded-md border border-amber/40 bg-amber/10 p-3 text-sm text-amber">
               <CircleAlert size={16} className="mr-2 inline" aria-hidden="true" />
-              {analysis.diagnostics[0]}
+              <span>{analysis.diagnostics[0].what}</span>
+              <p className="mt-1 text-xs text-amber/80">{analysis.diagnostics[0].nowWhat}</p>
             </div>
           ) : null}
 

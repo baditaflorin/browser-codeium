@@ -1,36 +1,70 @@
 import { assetUrl } from "@/lib/baseUrl";
 import { Parser, Language, type Node } from "web-tree-sitter";
 import { analyzeWithFallback } from "./fallback";
+import {
+  createLightweightAnalysis,
+  diagnostic,
+  finalizeAnalysis,
+  makeSymbol,
+  prepareAnalysisInput,
+  type PreparedAnalysisInput
+} from "./substance";
 import type { CodeAnalysis, CodeSymbol, SymbolKind } from "./types";
 
 let initPromise: Promise<void> | undefined;
 const languageCache = new Map<string, Promise<Language>>();
 
-export async function analyzeSource(code: string, path: string): Promise<CodeAnalysis> {
-  if (!isTreeSitterCandidate(path)) {
-    return analyzeWithFallback(code, path, [
-      "Tree-sitter is enabled for JavaScript and TypeScript files in v1."
-    ]);
+export interface AnalyzeSourceOptions {
+  signal?: AbortSignal;
+}
+
+export async function analyzeSource(
+  code: string,
+  path: string,
+  options: AnalyzeSourceOptions = {}
+): Promise<CodeAnalysis> {
+  const prepared = prepareAnalysisInput(code, path);
+  throwIfAborted(options.signal);
+
+  if (!prepared.shouldDeepParse || !isTreeSitterCandidate(path)) {
+    return createLightweightAnalysis(prepared, 0);
   }
 
   try {
-    return await analyzeWithTreeSitter(code, path);
+    return await analyzeWithTreeSitter(prepared, options);
   } catch (error) {
+    throwIfAborted(options.signal);
     const message = error instanceof Error ? error.message : String(error);
-    return analyzeWithFallback(code, path, [
-      `Tree-sitter unavailable, used fallback analysis: ${message}`
-    ]);
+    return analyzeWithFallback(
+      prepared.originalCode,
+      path,
+      [
+        diagnostic(
+          "parser.fallback",
+          "warning",
+          "Tree-sitter could not complete this analysis.",
+          message,
+          "The app used a deterministic fallback outline. Treat the result as lower confidence."
+        )
+      ],
+      prepared
+    );
   }
 }
 
-async function analyzeWithTreeSitter(code: string, path: string): Promise<CodeAnalysis> {
+async function analyzeWithTreeSitter(
+  prepared: PreparedAnalysisInput,
+  options: AnalyzeSourceOptions
+): Promise<CodeAnalysis> {
   const started = performance.now();
   await ensureTreeSitter();
+  throwIfAborted(options.signal);
 
   const parser = new Parser();
-  parser.setLanguage(await loadLanguage(path));
-  const tree = parser.parse(code);
+  parser.setLanguage(await loadLanguage(prepared.path));
+  const tree = parser.parse(prepared.code);
   parser.delete();
+  throwIfAborted(options.signal);
 
   if (!tree) {
     throw new Error("Parser returned no syntax tree");
@@ -41,17 +75,40 @@ async function analyzeWithTreeSitter(code: string, path: string): Promise<CodeAn
   const exports: string[] = [];
   walk(tree.rootNode, symbols, imports, exports);
 
-  const analysis: CodeAnalysis = {
-    engine: "tree-sitter",
-    language: languageName(path),
-    rootType: tree.rootNode.type,
-    parseMs: Math.round(performance.now() - started),
-    hasSyntaxErrors: tree.rootNode.hasError,
-    symbols: symbols.slice(0, 60),
-    imports: imports.slice(0, 20),
-    exports: exports.slice(0, 20),
-    diagnostics: tree.rootNode.hasError ? ["Tree-sitter parsed the file with syntax errors."] : []
-  };
+  const hasSyntaxErrors = tree.rootNode.hasError || prepared.fileShape === "partial-input";
+  const diagnostics = hasSyntaxErrors
+    ? [
+        ...prepared.diagnostics,
+        diagnostic(
+          "parser.syntax-error",
+          "warning",
+          "Tree-sitter found syntax errors.",
+          "The source may be incomplete, malformed, or using syntax this parser cannot fully recover from.",
+          "Inspect the first syntax-error line and rerun analysis after fixing or completing the file."
+        )
+      ]
+    : prepared.diagnostics;
+
+  const analysis: CodeAnalysis = finalizeAnalysis(
+    {
+      schemaVersion: 2,
+      engine: "tree-sitter",
+      language: prepared.language,
+      fileShape: prepared.fileShape,
+      rootType: tree.rootNode.type,
+      parseMs: Math.round(performance.now() - started),
+      hasSyntaxErrors,
+      confidence: prepared.confidence,
+      symbols: symbols.slice(0, 80),
+      imports: imports.slice(0, 30),
+      exports: exports.slice(0, 30),
+      diagnostics,
+      anomalies: prepared.anomalies,
+      explanation: prepared.explanation,
+      provenance: prepared.provenance
+    },
+    prepared
+  );
 
   tree.delete();
   return analysis;
@@ -83,13 +140,6 @@ function grammarFile(path: string): string {
   if (lower.endsWith(".tsx") || lower.endsWith(".jsx")) return "tree-sitter-tsx.wasm";
   if (lower.endsWith(".ts")) return "tree-sitter-typescript.wasm";
   return "tree-sitter-javascript.wasm";
-}
-
-function languageName(path: string): CodeAnalysis["language"] {
-  const lower = path.toLowerCase();
-  if (lower.endsWith(".tsx") || lower.endsWith(".jsx")) return "tsx";
-  if (lower.endsWith(".ts")) return "typescript";
-  return "javascript";
 }
 
 function isTreeSitterCandidate(path: string): boolean {
@@ -157,15 +207,26 @@ function symbolKindForNode(type: string): SymbolKind | null {
 }
 
 function toSymbol(name: string, kind: SymbolKind, node: Node): CodeSymbol {
-  return {
+  return makeSymbol(
     name,
     kind,
-    line: node.startPosition.row + 1,
-    column: node.startPosition.column + 1,
-    preview: oneLine(node.text)
-  };
+    node.startPosition.row + 1,
+    node.startPosition.column + 1,
+    oneLine(node.text),
+    {
+      score: 0.82,
+      label: "high",
+      reasons: ["Tree-sitter returned a named syntax node."]
+    }
+  );
 }
 
 function oneLine(text: string): string {
   return text.replace(/\s+/g, " ").trim().slice(0, 140);
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DOMException("Analysis cancelled", "AbortError");
+  }
 }

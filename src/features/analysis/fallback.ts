@@ -1,4 +1,11 @@
-import type { CodeAnalysis, CodeSymbol, SymbolKind } from "./types";
+import {
+  createLightweightAnalysis,
+  finalizeAnalysis,
+  makeSymbol,
+  prepareAnalysisInput,
+  type PreparedAnalysisInput
+} from "./substance";
+import type { AnalysisDiagnostic, CodeAnalysis, CodeSymbol, SymbolKind } from "./types";
 
 const declarationPatterns: Array<[SymbolKind, RegExp]> = [
   ["class", /^\s*(?:export\s+)?class\s+([A-Za-z_$][\w$]*)/],
@@ -11,10 +18,19 @@ const declarationPatterns: Array<[SymbolKind, RegExp]> = [
 export function analyzeWithFallback(
   code: string,
   path: string,
-  diagnostics: string[] = []
+  diagnostics: AnalysisDiagnostic[] = [],
+  preparedInput?: PreparedAnalysisInput
 ): CodeAnalysis {
   const started = performance.now();
-  const lines = code.split("\n");
+  const prepared = preparedInput ?? prepareAnalysisInput(code, path);
+  if (!prepared.shouldDeepParse) {
+    return createLightweightAnalysis(
+      { ...prepared, diagnostics: [...prepared.diagnostics, ...diagnostics] },
+      Math.round(performance.now() - started)
+    );
+  }
+
+  const lines = prepared.code.split("\n");
   const symbols: CodeSymbol[] = [];
   const imports: string[] = [];
   const exports: string[] = [];
@@ -38,36 +54,41 @@ export function analyzeWithFallback(
     }
   });
 
-  return {
-    engine: "fallback",
-    language: languageFromPath(path),
-    rootType: "text",
-    parseMs: Math.round(performance.now() - started),
-    hasSyntaxErrors: false,
-    symbols: dedupeSymbols(symbols),
-    imports,
-    exports,
-    diagnostics
-  };
+  return finalizeAnalysis(
+    {
+      schemaVersion: 2,
+      engine: "fallback",
+      language: prepared.language,
+      fileShape: prepared.fileShape,
+      rootType: "text",
+      parseMs: Math.round(performance.now() - started),
+      hasSyntaxErrors: prepared.fileShape === "partial-input",
+      confidence: prepared.confidence,
+      symbols: dedupeSymbols(symbols),
+      imports,
+      exports,
+      diagnostics: [...prepared.diagnostics, ...diagnostics],
+      anomalies: prepared.anomalies,
+      explanation: prepared.explanation,
+      provenance: prepared.provenance
+    },
+    prepared
+  );
 }
 
 function symbolForLine(name: string, kind: SymbolKind, line: string, index: number): CodeSymbol {
-  return {
+  return makeSymbol(
     name,
     kind,
-    line: index + 1,
-    column: Math.max(1, line.indexOf(name) + 1),
-    preview: line.trim().slice(0, 140)
-  };
-}
-
-function languageFromPath(path: string): CodeAnalysis["language"] {
-  const lower = path.toLowerCase();
-  if (lower.endsWith(".tsx") || lower.endsWith(".jsx")) return "tsx";
-  if (lower.endsWith(".ts")) return "typescript";
-  if (lower.endsWith(".js") || lower.endsWith(".mjs") || lower.endsWith(".cjs"))
-    return "javascript";
-  return "text";
+    index + 1,
+    Math.max(1, line.indexOf(name) + 1),
+    line.trim().slice(0, 140),
+    {
+      score: 0.62,
+      label: "medium",
+      reasons: ["Fallback pattern matched a top-level source line."]
+    }
+  );
 }
 
 function dedupeSymbols(symbols: CodeSymbol[]): CodeSymbol[] {
