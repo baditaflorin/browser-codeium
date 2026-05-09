@@ -17,6 +17,7 @@ export default defineConfig({
       reporter: ["text", "html"],
       include: [
         "src/features/analysis/fallback.ts",
+        "src/features/analysis/substance.ts",
         "src/features/assistant/assistant.ts",
         "src/features/system/webgpu.ts",
         "src/features/workspace/workspace.ts"
