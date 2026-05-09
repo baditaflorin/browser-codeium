@@ -46,6 +46,8 @@ export const codeExtensions = new Set([
   ".yml"
 ]);
 
+export const fileInputAccept = [...codeExtensions].join(",");
+
 export function languageFromPath(path: string): string {
   const lower = path.toLowerCase();
   if (lower.endsWith(".tsx")) return "typescript";
@@ -72,22 +74,44 @@ export function isSupportedTextPath(path: string): boolean {
 export function createWorkspaceFromSamples(
   files: Array<{ path: string; content: string }>
 ): Workspace {
+  return createWorkspace(
+    "Sample workspace",
+    files.map((file) => ({
+      path: file.path,
+      language: languageFromPath(file.path),
+      content: file.content,
+      source: "sample" as const,
+      updatedAt: new Date().toISOString()
+    }))
+  );
+}
+
+export function createWorkspace(name: string, files: WorkspaceFile[]): Workspace {
   const now = new Date().toISOString();
-  const workspaceFiles = files.map((file) => ({
-    path: file.path,
-    language: languageFromPath(file.path),
-    content: file.content,
-    source: "sample" as const,
-    updatedAt: now
+  const normalizedFiles = files.map((file) => ({
+    ...file,
+    updatedAt: file.updatedAt || now
   }));
 
   return {
-    name: "Sample workspace",
-    files: workspaceFiles,
+    name,
+    files: normalizedFiles,
     skippedFiles: [],
-    activePath: workspaceFiles[0]?.path ?? "untitled.ts",
+    activePath: normalizedFiles[0]?.path ?? "untitled.ts",
     updatedAt: now
   };
+}
+
+export function createEmptyWorkspace(): Workspace {
+  return createWorkspace("Untitled workspace", [
+    {
+      path: "untitled.ts",
+      language: "typescript",
+      content: "export const example = true;\n",
+      source: "browser",
+      updatedAt: new Date().toISOString()
+    }
+  ]);
 }
 
 export function getActiveFile(workspace: Workspace): WorkspaceFile {

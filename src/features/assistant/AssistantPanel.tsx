@@ -6,20 +6,22 @@ interface AssistantPanelProps {
   draft: AssistantDraft | null;
   onPromptChange: (value: string) => void;
   onGenerate: () => void;
+  onCopyDraft: () => void;
 }
 
 export function AssistantPanel({
   prompt,
   draft,
   onPromptChange,
-  onGenerate
+  onGenerate,
+  onCopyDraft
 }: AssistantPanelProps): JSX.Element {
   return (
     <section className="panel-section">
       <div className="panel-heading">
         <div>
           <h2>Assistant</h2>
-          <p>Local coding draft, ready for BYO-key providers later.</p>
+          <p>Deterministic local coding draft for the active file.</p>
         </div>
         <button
           type="button"
@@ -50,9 +52,14 @@ export function AssistantPanel({
         <div className="mt-4 space-y-3 rounded-md border border-line bg-ink p-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold text-white">{draft.title}</h3>
-            <span className="rounded-md border border-line px-2 py-1 text-xs text-muted">
-              {draft.risk} risk
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="rounded-md border border-line px-2 py-1 text-xs text-muted">
+                {draft.risk} risk
+              </span>
+              <button type="button" className="toolbar-button" onClick={onCopyDraft}>
+                Copy draft
+              </button>
+            </div>
           </div>
           <ul className="space-y-2 text-sm text-muted">
             {draft.summary.map((item) => (

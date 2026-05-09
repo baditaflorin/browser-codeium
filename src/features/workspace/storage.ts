@@ -1,26 +1,15 @@
-import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import { getBrowserDb } from "@/features/persistence/browserDb";
 import { workspaceSchema, type Workspace } from "./workspace";
 
-interface BrowserCodeiumDb extends DBSchema {
-  workspaces: {
-    key: "current";
-    value: Workspace;
-  };
-}
-
-let dbPromise: Promise<IDBPDatabase<BrowserCodeiumDb>> | undefined;
-
-function getDb(): Promise<IDBPDatabase<BrowserCodeiumDb>> {
-  dbPromise ??= openDB<BrowserCodeiumDb>("browser-codeium", 1, {
-    upgrade(db) {
-      db.createObjectStore("workspaces");
-    }
-  });
-  return dbPromise;
-}
+const workspaceStorageKey = "browser-codeium:workspace";
 
 export async function loadWorkspace(): Promise<Workspace | null> {
-  const db = await getDb();
+  const localValue = window.localStorage.getItem(workspaceStorageKey);
+  if (localValue) {
+    return workspaceSchema.parse(JSON.parse(localValue) as unknown);
+  }
+
+  const db = await getBrowserDb();
   const value = await db.get("workspaces", "current");
   if (!value) {
     return null;
@@ -29,12 +18,18 @@ export async function loadWorkspace(): Promise<Workspace | null> {
   return workspaceSchema.parse(value);
 }
 
+export function cacheWorkspace(workspace: Workspace): void {
+  window.localStorage.setItem(workspaceStorageKey, JSON.stringify(workspace));
+}
+
 export async function saveWorkspace(workspace: Workspace): Promise<void> {
-  const db = await getDb();
+  cacheWorkspace(workspace);
+  const db = await getBrowserDb();
   await db.put("workspaces", workspace, "current");
 }
 
 export async function clearWorkspace(): Promise<void> {
-  const db = await getDb();
+  window.localStorage.removeItem(workspaceStorageKey);
+  const db = await getBrowserDb();
   await db.delete("workspaces", "current");
 }

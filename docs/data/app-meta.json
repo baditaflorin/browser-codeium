@@ -9,7 +9,8 @@
     "Monaco editing",
     "Tree-sitter WASM analysis",
     "WebGPU capability detection",
-    "IndexedDB workspace persistence",
+    "Workspace import, export, and share",
+    "IndexedDB and localStorage persistence",
     "Offline-friendly PWA shell"
   ]
 }
