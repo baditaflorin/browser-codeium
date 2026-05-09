@@ -67,6 +67,20 @@ export function Sidebar({
             Folder import is available in Chromium browsers that expose File System Access.
           </p>
         ) : null}
+        {workspace?.skippedFiles.length ? (
+          <details className="mt-3 rounded-md border border-amber/40 bg-amber/10 p-2 text-xs text-amber">
+            <summary>{workspace.skippedFiles.length} skipped file reason(s)</summary>
+            <div className="mt-2 space-y-2">
+              {workspace.skippedFiles.slice(0, 8).map((file) => (
+                <div key={file.path}>
+                  <p className="font-medium">{file.path}</p>
+                  <p>{file.reason}</p>
+                  <p className="text-amber/75">{file.nextStep}</p>
+                </div>
+              ))}
+            </div>
+          </details>
+        ) : null}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-2">

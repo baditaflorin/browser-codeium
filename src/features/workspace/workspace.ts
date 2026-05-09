@@ -8,14 +8,23 @@ export const workspaceFileSchema = z.object({
   updatedAt: z.string()
 });
 
+export const skippedFileSchema = z.object({
+  path: z.string().min(1),
+  reason: z.string().min(1),
+  nextStep: z.string().min(1),
+  sizeBytes: z.number().nonnegative().optional()
+});
+
 export const workspaceSchema = z.object({
   name: z.string().min(1),
   files: z.array(workspaceFileSchema).min(1),
+  skippedFiles: z.array(skippedFileSchema).default([]),
   activePath: z.string().min(1),
   updatedAt: z.string()
 });
 
 export type WorkspaceFile = z.infer<typeof workspaceFileSchema>;
+export type SkippedFile = z.infer<typeof skippedFileSchema>;
 export type Workspace = z.infer<typeof workspaceSchema>;
 
 export const codeExtensions = new Set([
@@ -75,6 +84,7 @@ export function createWorkspaceFromSamples(
   return {
     name: "Sample workspace",
     files: workspaceFiles,
+    skippedFiles: [],
     activePath: workspaceFiles[0]?.path ?? "untitled.ts",
     updatedAt: now
   };
