@@ -61,3 +61,5 @@ Architecture docs: https://github.com/baditaflorin/browser-codeium/tree/main/doc
 ADRs: https://github.com/baditaflorin/browser-codeium/tree/main/docs/adr
 
 Deployment guide: https://github.com/baditaflorin/browser-codeium/blob/main/docs/deploy.md
+
+Phase 2 substance postmortem: https://github.com/baditaflorin/browser-codeium/blob/main/docs/postmortem-phase2-substance.md

@@ -68,3 +68,15 @@ Current happy path audited: open/load a file, run analysis, read the structure p
 - No full LLM provider integration in this phase.
 - No full IDE parity, terminal, package manager, debugger, or multi-file semantic index.
 - No architecture mode change; Phase 2 remains Mode A on GitHub Pages.
+
+## Implementation Result
+
+Phase 2 v0.2.0 result: 10/10 fixtures now pass the substance gate for file-shape classification, confidence exposure, required diagnostics, required symbols where applicable, and deterministic output.
+
+Pass-rate trend:
+
+- Baseline audit: 3/10 useful without manual interpretation; unsupported, huge, partial, minified, and barrel inputs were weak or misleading.
+- After analysis schema v2 and input classification: 8/10 classified honestly, with remaining misses in declaration prioritization and multiline barrel detection.
+- After regression fixes: 10/10 fixtures pass with no crashes and byte-identical stabilized analysis JSON.
+
+The committed gate is `src/features/analysis/realdata-fixtures.test.ts`; the fixtures live in `test/fixtures/realdata/`.

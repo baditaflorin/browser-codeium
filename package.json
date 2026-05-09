@@ -1,6 +1,6 @@
 {
   "name": "browser-codeium",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "description": "A GitHub Pages IDE with Monaco, tree-sitter, WebGPU, and local-first AI coding workflows.",
   "type": "module",
