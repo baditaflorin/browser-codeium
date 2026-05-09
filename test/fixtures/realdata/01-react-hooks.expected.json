@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expected": {
+    "language": "javascript",
+    "fileShape": "normal-module",
+    "confidenceAtLeast": 0.7,
+    "mustHaveSymbols": ["useState", "useEffect"],
+    "mustHaveDiagnosticCodes": [],
+    "mustNotCrash": true
+  }
+}

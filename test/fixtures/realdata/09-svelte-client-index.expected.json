@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expected": {
+    "language": "javascript",
+    "fileShape": "barrel-file",
+    "confidenceAtLeast": 0.65,
+    "mustHaveSymbols": [],
+    "mustHaveDiagnosticCodes": ["shape.barrel-file"],
+    "mustNotCrash": true
+  }
+}

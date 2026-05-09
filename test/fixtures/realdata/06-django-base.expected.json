@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expected": {
+    "language": "python",
+    "fileShape": "unsupported-language",
+    "confidenceAtMost": 0.35,
+    "mustHaveSymbols": [],
+    "mustHaveDiagnosticCodes": ["language.unsupported"],
+    "mustNotCrash": true
+  }
+}

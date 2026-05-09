@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expected": {
+    "language": "tsx",
+    "fileShape": "entrypoint",
+    "confidenceAtLeast": 0.65,
+    "mustHaveSymbols": ["render"],
+    "mustHaveDiagnosticCodes": ["shape.entrypoint"],
+    "mustNotCrash": true
+  }
+}

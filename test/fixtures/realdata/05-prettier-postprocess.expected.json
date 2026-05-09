@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expected": {
+    "language": "javascript",
+    "fileShape": "pipeline",
+    "confidenceAtLeast": 0.65,
+    "mustHaveSymbols": ["postprocess"],
+    "mustHaveDiagnosticCodes": ["shape.pipeline"],
+    "mustNotCrash": true
+  }
+}

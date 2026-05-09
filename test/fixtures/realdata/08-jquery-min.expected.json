@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expected": {
+    "language": "javascript",
+    "fileShape": "minified-bundle",
+    "confidenceAtMost": 0.45,
+    "mustHaveSymbols": [],
+    "mustHaveDiagnosticCodes": ["input.minified"],
+    "mustNotCrash": true
+  }
+}

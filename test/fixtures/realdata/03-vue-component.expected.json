@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expected": {
+    "language": "typescript",
+    "fileShape": "framework-runtime",
+    "confidenceAtLeast": 0.65,
+    "mustHaveSymbols": ["createComponentInstance"],
+    "mustHaveDiagnosticCodes": ["shape.framework-runtime"],
+    "mustNotCrash": true
+  }
+}

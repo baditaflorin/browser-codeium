@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expected": {
+    "language": "typescript",
+    "fileShape": "huge-file",
+    "confidenceAtMost": 0.45,
+    "mustHaveSymbols": [],
+    "mustHaveDiagnosticCodes": ["input.huge-file"],
+    "mustNotCrash": true
+  }
+}

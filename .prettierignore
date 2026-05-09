@@ -8,3 +8,4 @@ docs/*.html
 docs/sw.js
 public/vendor/
 package-lock.json
+test/fixtures/

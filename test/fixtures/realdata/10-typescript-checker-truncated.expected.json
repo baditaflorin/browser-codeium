@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expected": {
+    "language": "typescript",
+    "fileShape": "partial-input",
+    "confidenceAtMost": 0.55,
+    "mustHaveSymbols": [],
+    "mustHaveDiagnosticCodes": ["input.partial"],
+    "mustNotCrash": true
+  }
+}
