@@ -154,7 +154,13 @@ export function finalizeAnalysis(
       ...symbol,
       confidence: mergeConfidence(symbol.confidence, confidence, false)
     }))
-    .sort((a, b) => a.line - b.line || a.column - b.column || a.id.localeCompare(b.id))
+    .sort(
+      (a, b) =>
+        symbolRank(a.kind) - symbolRank(b.kind) ||
+        a.line - b.line ||
+        a.column - b.column ||
+        a.id.localeCompare(b.id)
+    )
     .slice(0, analysisLimits.maxSymbols);
 
   return {
@@ -533,18 +539,16 @@ function looksPartial(code: string): boolean {
       }
     }
   }
-  return stack.length >= 2 && /[,{([]?\s*(?:\/\/.*)?$/m.test(code.slice(-500));
+  const tail = code.trimEnd();
+  const finalChar = tail.at(-1) ?? "";
+  return stack.length >= 2 && !/[;})\]"'`]$/.test(finalChar);
 }
 
 function looksBarrel(code: string): boolean {
-  const sourceLines = code
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith("//"));
-  const exportFrom = sourceLines.filter((line) =>
-    /^export\s+(?:\{|\*)[\s\S]*\sfrom\s+['"]/.test(line)
-  );
-  return sourceLines.length >= 5 && exportFrom.length / sourceLines.length > 0.65;
+  const exportFrom = code.match(/export\s+(?:\{[\s\S]*?\}|\*)\s+from\s+['"][^'"]+['"]/g) ?? [];
+  const localDeclarations =
+    code.match(/^\s*(?:export\s+)?(?:function|class|const|let|var|interface|type)\s+/gm) ?? [];
+  return exportFrom.length >= 5 && localDeclarations.length <= Math.max(2, exportFrom.length * 0.1);
 }
 
 function looksEntrypoint(path: string, code: string): boolean {
@@ -593,6 +597,20 @@ function sortDiagnostics(diagnostics: AnalysisDiagnostic[]): AnalysisDiagnostic[
         all.findIndex((item) => item.id === diagnosticItem.id) === index
     )
     .sort((a, b) => a.code.localeCompare(b.code) || a.id.localeCompare(b.id));
+}
+
+function symbolRank(kind: SymbolKind): number {
+  const ranks: Record<SymbolKind, number> = {
+    class: 0,
+    function: 1,
+    method: 2,
+    interface: 3,
+    type: 4,
+    variable: 5,
+    import: 6,
+    export: 7
+  };
+  return ranks[kind];
 }
 
 function fnv1a(value: string): string {

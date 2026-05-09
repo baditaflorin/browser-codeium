@@ -1,4 +1,5 @@
 import { Activity, Database, Gauge, WifiOff } from "lucide-react";
+import type { CodeAnalysis } from "@/features/analysis/types";
 import { buildInfo } from "@/lib/buildInfo";
 import { StatusPill } from "@/components/StatusPill";
 import type { WebGpuStatus } from "./webgpu";
@@ -9,6 +10,8 @@ interface SystemPanelProps {
   storageState: string;
   sampleVersion: number | null;
   commit: string;
+  analysis: CodeAnalysis | null;
+  debugEnabled: boolean;
 }
 
 export function SystemPanel({
@@ -16,7 +19,9 @@ export function SystemPanel({
   onCheckWebGpu,
   storageState,
   sampleVersion,
-  commit
+  commit,
+  analysis,
+  debugEnabled
 }: SystemPanelProps): JSX.Element {
   return (
     <section className="panel-section">
@@ -65,6 +70,30 @@ export function SystemPanel({
           <p>Commit: {commit}</p>
           <p className="break-all">Pages: {buildInfo.pagesUrl}</p>
         </div>
+
+        {debugEnabled ? (
+          <details className="rounded-md border border-line bg-ink p-3 text-xs text-muted" open>
+            <summary className="cursor-pointer text-mist">Debug analysis state</summary>
+            {analysis ? (
+              <dl className="mt-2 grid grid-cols-[96px_1fr] gap-1">
+                <dt>Shape</dt>
+                <dd>{analysis.fileShape}</dd>
+                <dt>Confidence</dt>
+                <dd>
+                  {analysis.confidence.label} {Math.round(analysis.confidence.score * 100)}%
+                </dd>
+                <dt>Source hash</dt>
+                <dd>{analysis.provenance.sourceHash}</dd>
+                <dt>Diagnostics</dt>
+                <dd>{analysis.diagnostics.map((item) => item.code).join(", ") || "none"}</dd>
+                <dt>Anomalies</dt>
+                <dd>{analysis.anomalies.join(", ") || "none"}</dd>
+              </dl>
+            ) : (
+              <p className="mt-2">No analysis has completed for the active file.</p>
+            )}
+          </details>
+        ) : null}
       </div>
     </section>
   );

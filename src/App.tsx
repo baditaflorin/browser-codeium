@@ -1,6 +1,6 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Play, Save } from "lucide-react";
+import { Play, Save, Square } from "lucide-react";
 import { AnalysisPanel } from "@/features/analysis/AnalysisPanel";
 import { analyzeSource } from "@/features/analysis/treeSitter";
 import type { CodeAnalysis } from "@/features/analysis/types";
@@ -54,10 +54,22 @@ export function App(): JSX.Element {
   const [webGpuStatus, setWebGpuStatus] = useState<WebGpuStatus>(uncheckedWebGpu);
   const [storageState, setStorageState] = useState("loading");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisKey, setAnalysisKey] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const analysisCache = useRef(new Map<string, CodeAnalysis>());
+  const analysisAbort = useRef<AbortController | null>(null);
 
   const activeFile = useMemo(() => (workspace ? getActiveFile(workspace) : null), [workspace]);
+  const activeFileCacheKey = useMemo(
+    () =>
+      activeFile ? `${activeFile.path}:${activeFile.updatedAt}:${activeFile.content.length}` : null,
+    [activeFile]
+  );
   const displayedCommit = latestCommit.data ?? "main";
+  const debugEnabled = useMemo(
+    () => new URLSearchParams(window.location.search).get("debug") === "1",
+    []
+  );
 
   const pushToast = useCallback((tone: ToastMessage["tone"], message: string) => {
     const id = crypto.randomUUID();
@@ -75,6 +87,7 @@ export function App(): JSX.Element {
     const next = createWorkspaceFromSamples(samples.data.samples);
     setWorkspace(next);
     setAnalysis(null);
+    setAnalysisKey(null);
     setAssistantDraft(null);
     pushToast("success", "Sample workspace loaded.");
   }, [pushToast, samples.data]);
@@ -125,7 +138,10 @@ export function App(): JSX.Element {
         return;
       }
       setWorkspace(updateFileContent(workspace, activeFile.path, content));
+      analysisAbort.current?.abort();
+      setIsAnalyzing(false);
       setAnalysis(null);
+      setAnalysisKey(null);
       setAssistantDraft(null);
     },
     [activeFile, workspace]
@@ -137,7 +153,10 @@ export function App(): JSX.Element {
         return;
       }
       setWorkspace(setActiveFile(workspace, path));
+      analysisAbort.current?.abort();
+      setIsAnalyzing(false);
       setAnalysis(null);
+      setAnalysisKey(null);
       setAssistantDraft(null);
     },
     [workspace]
@@ -162,7 +181,10 @@ export function App(): JSX.Element {
     void openDirectoryWorkspace()
       .then((next) => {
         setWorkspace(next);
+        analysisAbort.current?.abort();
+        setIsAnalyzing(false);
         setAnalysis(null);
+        setAnalysisKey(null);
         setAssistantDraft(null);
         pushToast("success", `Opened ${next.files.length} text files.`);
       })
@@ -178,21 +200,94 @@ export function App(): JSX.Element {
       .catch((error) => pushToast("error", reportError(error)));
   }, [loadSampleWorkspace, pushToast]);
 
+  const runAnalysis = useCallback(
+    (announce: boolean) => {
+      if (!activeFile || !activeFileCacheKey) {
+        if (announce) {
+          pushToast("error", "Select a file before analyzing.");
+        }
+        return;
+      }
+
+      const cached = analysisCache.current.get(activeFileCacheKey);
+      if (cached) {
+        setAnalysis(cached);
+        setAnalysisKey(activeFileCacheKey);
+        if (announce) {
+          pushToast(
+            "success",
+            `Reused ${cached.fileShape} analysis with ${cached.confidence.label} confidence.`
+          );
+        }
+        return;
+      }
+
+      analysisAbort.current?.abort();
+      const controller = new AbortController();
+      analysisAbort.current = controller;
+      setIsAnalyzing(true);
+
+      void analyzeSource(activeFile.content, activeFile.path, { signal: controller.signal })
+        .then((nextAnalysis) => {
+          if (controller.signal.aborted || analysisAbort.current !== controller) {
+            return;
+          }
+          analysisCache.current.set(activeFileCacheKey, nextAnalysis);
+          setAnalysis(nextAnalysis);
+          setAnalysisKey(activeFileCacheKey);
+          if (announce) {
+            pushToast(
+              "success",
+              `Detected ${nextAnalysis.fileShape} with ${nextAnalysis.confidence.label} confidence.`
+            );
+          }
+        })
+        .catch((error) => {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            if (announce) {
+              pushToast("info", "Analysis cancelled. Previous result kept.");
+            }
+            return;
+          }
+          pushToast("error", reportError(error));
+        })
+        .finally(() => {
+          if (analysisAbort.current === controller) {
+            analysisAbort.current = null;
+            setIsAnalyzing(false);
+          }
+        });
+    },
+    [activeFile, activeFileCacheKey, pushToast]
+  );
+
   const handleAnalyze = useCallback(() => {
-    if (!activeFile) {
-      pushToast("error", "Select a file before analyzing.");
+    if (isAnalyzing) {
+      analysisAbort.current?.abort();
+      analysisAbort.current = null;
+      setIsAnalyzing(false);
+      pushToast("info", "Analysis cancelled. Previous result kept.");
       return;
     }
 
-    setIsAnalyzing(true);
-    void analyzeSource(activeFile.content, activeFile.path)
-      .then((nextAnalysis) => {
-        setAnalysis(nextAnalysis);
-        pushToast("success", `Analyzed ${activeFile.path} with ${nextAnalysis.engine}.`);
-      })
-      .catch((error) => pushToast("error", reportError(error)))
-      .finally(() => setIsAnalyzing(false));
-  }, [activeFile, pushToast]);
+    runAnalysis(true);
+  }, [isAnalyzing, pushToast, runAnalysis]);
+
+  useEffect(() => {
+    if (!activeFile || !activeFileCacheKey || isAnalyzing || analysisKey === activeFileCacheKey) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => runAnalysis(false), 250);
+    return () => window.clearTimeout(timer);
+  }, [activeFile, activeFileCacheKey, analysisKey, isAnalyzing, runAnalysis]);
+
+  useEffect(
+    () => () => {
+      analysisAbort.current?.abort();
+    },
+    []
+  );
 
   const handleAssistant = useCallback(() => {
     if (!activeFile) {
@@ -250,8 +345,12 @@ export function App(): JSX.Element {
             </div>
             <div className="flex gap-2">
               <button type="button" className="toolbar-button" onClick={handleAnalyze}>
-                <Play size={16} aria-hidden="true" />
-                <span>{isAnalyzing ? "Analyzing" : "Analyze"}</span>
+                {isAnalyzing ? (
+                  <Square size={16} aria-hidden="true" />
+                ) : (
+                  <Play size={16} aria-hidden="true" />
+                )}
+                <span>{isAnalyzing ? "Cancel" : "Analyze"}</span>
               </button>
               <button type="button" className="toolbar-button" onClick={handleSave}>
                 <Save size={16} aria-hidden="true" />
@@ -291,6 +390,8 @@ export function App(): JSX.Element {
               storageState={storageState}
               sampleVersion={samples.data?.schemaVersion ?? appMeta.data?.schemaVersion ?? null}
               commit={displayedCommit}
+              analysis={analysis}
+              debugEnabled={debugEnabled}
             />
           </div>
         </aside>
