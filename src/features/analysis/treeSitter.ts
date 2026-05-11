@@ -135,15 +135,25 @@ function loadLanguage(path: string): Promise<Language> {
   return promise;
 }
 
-function grammarFile(path: string): string {
+/**
+ * Map a file path to the grammar WASM file we ship for it. Languages we
+ * don't have a grammar for fall through to the regex-based fallback
+ * outline. Keep this in lockstep with `scripts/copy-tree-sitter-assets.mjs`
+ * — adding an entry here without vendoring the .wasm will surface as a
+ * runtime "Tree-sitter could not complete this analysis" warning.
+ */
+export function grammarFile(path: string): string {
   const lower = path.toLowerCase();
   if (lower.endsWith(".tsx") || lower.endsWith(".jsx")) return "tree-sitter-tsx.wasm";
   if (lower.endsWith(".ts")) return "tree-sitter-typescript.wasm";
+  if (lower.endsWith(".py") || lower.endsWith(".pyi")) return "tree-sitter-python.wasm";
+  if (lower.endsWith(".go")) return "tree-sitter-go.wasm";
+  if (lower.endsWith(".rs")) return "tree-sitter-rust.wasm";
   return "tree-sitter-javascript.wasm";
 }
 
-function isTreeSitterCandidate(path: string): boolean {
-  return /\.(cjs|js|jsx|mjs|ts|tsx)$/i.test(path);
+export function isTreeSitterCandidate(path: string): boolean {
+  return /\.(cjs|js|jsx|mjs|ts|tsx|py|pyi|go|rs)$/i.test(path);
 }
 
 function walk(node: Node, symbols: CodeSymbol[], imports: string[], exports: string[]): void {
@@ -159,6 +169,7 @@ function collectNode(
   imports: string[],
   exports: string[]
 ): void {
+  // JS/TS-shaped import + export keyword statements.
   if (node.type === "import_statement") {
     imports.push(oneLine(node.text));
     symbols.push(toSymbol("import", "import", node));
@@ -168,6 +179,25 @@ function collectNode(
   if (node.type === "export_statement") {
     exports.push(oneLine(node.text));
     symbols.push(toSymbol("export", "export", node));
+  }
+
+  // Python imports: `import os`, `from foo import bar` — both surface
+  // as named nodes whose text is the whole statement, so we tag them
+  // and continue walking so a `from X import Y` still records Y.
+  if (node.type === "import_from_statement" || node.type === "import_statement_py") {
+    imports.push(oneLine(node.text));
+    symbols.push(toSymbol("import", "import", node));
+  }
+
+  // Go imports: `import "fmt"` (single) and `import ( "fmt"; "io" )` (group).
+  if (node.type === "import_spec" || node.type === "import_declaration") {
+    imports.push(oneLine(node.text));
+  }
+
+  // Rust imports: `use std::io::Read;` and `use foo::bar;`.
+  if (node.type === "use_declaration") {
+    imports.push(oneLine(node.text));
+    symbols.push(toSymbol("use", "import", node));
   }
 
   const name = node.childForFieldName("name")?.text;
@@ -189,6 +219,7 @@ function collectNode(
 
 function symbolKindForNode(type: string): SymbolKind | null {
   switch (type) {
+    // JS / TS
     case "class_declaration":
       return "class";
     case "function_declaration":
@@ -201,6 +232,42 @@ function symbolKindForNode(type: string): SymbolKind | null {
       return "interface";
     case "type_alias_declaration":
       return "type";
+
+    // Python
+    case "function_definition":
+      return "function";
+    case "class_definition":
+      return "class";
+    case "decorated_definition":
+      // The actual function/class lives inside as a named child; the
+      // walker visits it separately, so don't double-add here.
+      return null;
+
+    // Go
+    case "function_declaration_go":
+    case "method_declaration":
+      return "function";
+    case "type_declaration":
+    case "type_spec":
+      return "type";
+
+    // Rust
+    case "function_item":
+      return "function";
+    case "struct_item":
+    case "union_item":
+      return "class";
+    case "enum_item":
+      return "type";
+    case "trait_item":
+      return "interface";
+    case "type_item":
+      return "type";
+    case "impl_item":
+      return "class";
+    case "mod_item":
+      return "type";
+
     default:
       return null;
   }
